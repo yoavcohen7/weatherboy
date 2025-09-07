@@ -71,6 +71,34 @@ services:
     networks:
       - elknet
 
+  kbn-dataview-init:
+    image: python:3.12-alpine
+    container_name: kbn-dataview-init
+    depends_on:
+      weather-sender:
+        condition: service_started     # start only after the app began sending data
+      kibana:
+        condition: service_healthy     # and Kibana is ready
+      elasticsearch:
+        condition: service_started
+    working_dir: /app
+    volumes:
+      - ./kibana/init:/app:ro          # mount the script below
+    command: >
+      sh -c "pip install --no-cache-dir requests && python create_dataview.py"
+    environment:
+      # If you later enable security, add KIBANA_USERNAME/PASSWORD and use them in the script
+      - KIBANA_URL=http://kibana:5601
+      - ELASTIC_URL=http://elasticsearch:9200
+      - DATA_VIEW_TITLE=rabbitmq-logs*
+      - DATA_VIEW_NAME=RabbitMQ Logs
+      - DATA_VIEW_TIMEFIELD=@timestamp
+      - REQUIRED_INDEX=rabbitmq-logs*  # what to wait for before creating the data view
+    networks:
+      - elknet
+
+
+
 networks:
   elknet:
     driver: bridge
