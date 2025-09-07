@@ -12,29 +12,28 @@ services:
       - "9200:9200"
     networks:
       - elknet
+
   kibana:
     image: docker.elastic.co/kibana/kibana:8.15.0
     container_name: kibana
     environment:
       ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
-      XPACK_SECURITY_ENABLED: "false"          # match ES security=off
+      XPACK_SECURITY_ENABLED: "false"
       SERVER_HOST: "0.0.0.0"
-      NODE_OPTIONS: "--max-old-space-size=1024" # avoid Node OOM crashes
+      NODE_OPTIONS: "--max-old-space-size=1024"
     depends_on:
       elasticsearch:
-        condition: service_started              # wait for ES to be up
+        condition: service_started
     ports:
       - "5601:5601"
     networks:
       - elknet
     healthcheck:
-      # ok when Kibana really ready (200). Give it more time than before.
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5601/api/status',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5601/api/status >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 4        # was 60
-      start_period: 120s  # was 60
-
+      retries: 30
+      start_period: 30s
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -61,7 +60,6 @@ services:
     networks:
       - elknet
 
-  # weather-sender יתחיל רק אחרי שקיבאנה HEALTHY, והשאר לפחות "עלו"
   weather-sender:
     build: ./weather-app
     container_name: weather-app
@@ -69,33 +67,9 @@ services:
       - OPENWEATHERMAP_API_KEY=b3cc1ecdf19c1539c33d9d479111cb47
     depends_on:
       kibana:
-        condition: service_started
+        condition: service_healthy
     networks:
       - elknet
-
-  # יבוא Saved Objects רק אחרי שקיבאנה מוכנה וגם האינדקס נוצר
-  # kbn-init:
-  #   image: curlimages/curl:8.8.0
-  #   container_name: kbn-init
-  #   depends_on:
-  #     weather-sender:
-  #       condition: service_started   # מבטיח שהסנדר כבר התחיל להזרים
-  #   command: >
-  #     sh -c "
-  #     echo 'Waiting for Kibana...' &&
-  #     until curl -fsS http://kibana:5601/api/status >/dev/null; do sleep 3; done &&
-  #     echo 'Waiting for index rabbitmq-logs...' &&
-  #     until curl -fsS -o /dev/null http://elasticsearch:9200/rabbitmq-logs; do sleep 3; done &&
-  #     echo 'Importing saved objects (Data View + Dashboard)...' &&
-  #     curl -fsS -X POST 'http://kibana:5601/api/saved_objects/_import?overwrite=true'
-  #       -H 'kbn-xsrf: true'
-  #       -F 'file=@/kbn-export.ndjson'
-  #     && echo 'Done.' "
-  #   volumes:
-  #     - ./kibana/kbn-export.ndjson:/kbn-export.ndjson:ro
-  #   networks:
-  #     - elknet
-  #   restart: "no"
 
 networks:
   elknet:
