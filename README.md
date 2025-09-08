@@ -10,8 +10,6 @@ We are doing it using multiple microservices managed by docker compose.
 - Docker 
 
 ## How to run?
-
-# /bin/bash
 git clone <this-repo-url>
 cd weatherboy
 docker compose up -d 
