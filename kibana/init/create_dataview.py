@@ -14,7 +14,6 @@ HEADERS = {
     "kbn-xsrf": "true",
 }
 
-# If Kibana security is enabled later:
 AUTH = None
 if os.getenv("KIBANA_USERNAME") and os.getenv("KIBANA_PASSWORD"):
     AUTH = (os.getenv("KIBANA_USERNAME"), os.getenv("KIBANA_PASSWORD"))
@@ -55,6 +54,13 @@ def index_exists(pattern: str) -> bool:
     return False
 
 def create_data_view():
+    """
+    Creates a Kibana data view using predefined constants.
+
+    Sends a POST request to the Kibana API to create a data view. If the data view already exists,
+    the function treats it as a successful, idempotent operation. Prints the result and returns True
+    on success, False otherwise.
+    """
     payload = {
         "data_view": {
             "title": DATA_VIEW_TITLE,
@@ -90,6 +96,6 @@ if __name__ == "__main__":
         time.sleep(5)
     print(f"Index/pattern '{REQUIRED_INDEX}' detected.")
 
-    # 3) Create Data View (idempotent)
+    # 3) Create Data View 
     ok = create_data_view()
     sys.exit(0 if ok else 1)

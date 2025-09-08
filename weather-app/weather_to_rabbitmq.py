@@ -12,7 +12,7 @@ QUEUE_NAME = "my-queue"
 INTERVAL = 3600  # 1 hour in seconds
 
 def get_weather():
-    """Fetch current weather for Eilat from OpenWeatherMap."""
+    """Fetch current weather for Hanoi from OpenWeatherMap."""
     url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric"
     response = requests.get(url)
     response.raise_for_status()
@@ -44,4 +44,6 @@ if __name__ == "__main__":
             send_to_rabbitmq(weather)
         except Exception as e:
             print(f"[ERROR] {e}")
+        
+        print(f"waiting for {INTERVAL} seconds")
         time.sleep(INTERVAL)

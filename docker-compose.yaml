@@ -87,17 +87,37 @@ services:
     command: >
       sh -c "pip install --no-cache-dir requests && python create_dataview.py"
     environment:
-      # If you later enable security, add KIBANA_USERNAME/PASSWORD and use them in the script
       - KIBANA_URL=http://kibana:5601
       - ELASTIC_URL=http://elasticsearch:9200
       - DATA_VIEW_TITLE=rabbitmq-logs*
       - DATA_VIEW_NAME=RabbitMQ Logs
       - DATA_VIEW_TIMEFIELD=@timestamp
-      - REQUIRED_INDEX=rabbitmq-logs*  # what to wait for before creating the data view
+      - REQUIRED_INDEX=rabbitmq-logs*  
     networks:
       - elknet
-
-
+   
+  kbn-dashboard-import:
+    image: python:3.12-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app:ro
+    environment:
+      - KIBANA_URL=http://kibana:5601
+      - DASHBOARD_FILE=kibana/dashboard_source.json
+      - DATA_VIEW_TITLE=rabbitmq-logs*
+      - DATA_VIEW_NAME=RabbitMQ Logs
+      - TIME_FIELD=@timestamp
+      - CREATE_DATAVIEW_IF_MISSING=1
+      - DEBUG=1
+    command: >
+      sh -lc "pip install --no-cache-dir requests &&
+              python kibana/import_dashboard.py"
+    depends_on:
+      - kibana
+    networks:
+      - elknet
+    restart: "no"
+  
 
 networks:
   elknet:
