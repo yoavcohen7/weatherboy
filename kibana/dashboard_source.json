@@ -1,0 +1,87 @@
+{
+  "attributes": {
+    "title": "weather dash",
+    "description": "",
+    "timeRestore": false,
+    "kibanaSavedObjectMeta": {
+      "searchSourceJSON": "{\"query\":{\"language\":\"kuery\",\"query\":\"\"},\"filter\":[]}"
+    },
+    "optionsJSON": "{\"useMargins\":true,\"syncColors\":false,\"syncCursor\":true,\"syncTooltips\":false,\"hidePanelTitles\":false}",
+    "panels": [
+      {
+        "version": "8.15.0",
+        "type": "lens",
+        "embeddableConfig": {
+          "attributes": {
+            "title": "Temperature (last value)",
+            "description": "By-value Lens via JSON import",
+            "visualizationType": "lnsXY",
+            "state": {
+              "query": { "language": "kuery", "query": "" },
+              "filters": [],
+              "datasourceStates": {
+                "formBased": {
+                  "layers": {
+                    "layer-1": {
+                      "indexPatternId": "REPLACE_ME",
+                      "columns": {
+                        "x": {
+                          "label": "@timestamp",
+                          "dataType": "date",
+                          "operationType": "date_histogram",
+                          "sourceField": "@timestamp",
+                          "isBucketed": true,
+                          "params": { "interval": "auto" }
+                        },
+                        "y": {
+                          "label": "Last value of temperature_celsius",
+                          "dataType": "number",
+                          "operationType": "last_value",
+                          "sourceField": "temperature_celsius",
+                          "isBucketed": false,
+                          "params": { "sortField": "@timestamp", "showArrayValues": false }
+                        }
+                      },
+                      "columnOrder": ["x", "y"],
+                      "incompleteColumns": {},
+                      "sampling": 1
+                    }
+                  }
+                }
+              },
+              "visualization": {
+                "legend": { "isVisible": true, "position": "right" },
+                "preferredSeriesType": "line",
+                "layers": [
+                  {
+                    "layerId": "layer-1",
+                    "accessors": ["y"],
+                    "position": "top",
+                    "seriesType": "line",
+                    "xAccessor": "x",
+                    "yConfig": [],
+                    "layerType": "data"
+                  }
+                ]
+              },
+              "adHocDataViews": {}
+            },
+            "references": [
+              { "type": "index-pattern", "id": "REPLACE_ME", "name": "indexpattern-datasource-layer-layer-1" }
+            ]
+          },
+          "hidePanelTitles": false
+        },
+        "gridData": { "x": 0, "y": 0, "w": 24, "h": 15, "i": "panel_0" },
+        "panelIndex": "panel_0"
+      }
+    ]
+  },
+  "references": [
+    {
+      "type": "index-pattern",
+      "id": "REPLACE_ME",
+      "name": "panel_0:indexpattern-datasource-layer-layer-1"
+    }
+  ]
+}
